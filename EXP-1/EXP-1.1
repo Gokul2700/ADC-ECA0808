@@ -1,0 +1,65 @@
+
+clc;
+clear;
+close all;
+
+% OBJECTIVE 2: UNDER-MODULATION (m < 1)
+% Model Graph of AM Signal
+
+% Signal Parameters
+Am = 1;
+Ac = 1;
+fm = 5;
+fc = 100;
+fs = 10000;
+m = 0.5;
+
+% Time vector
+t = 0:1/fs:0.6;
+
+% Message signal
+message = Am*cos(2*pi*fm*t);
+
+% Carrier signal
+carrier = Ac*cos(2*pi*fc*t);
+
+% AM signal generation
+am_signal = Ac*(1 + m*cos(2*pi*fm*t)) ...
+            .* cos(2*pi*fc*t);
+
+% Upper and lower envelopes
+upper_envelope = Ac*(1 + m*cos(2*pi*fm*t));
+lower_envelope = -upper_envelope;
+
+% Plot model graph
+figure('Color','w');
+
+plot(t,am_signal,'b','LineWidth',1);
+hold on;
+
+plot(t,upper_envelope,'r--','LineWidth',1.5);
+plot(t,lower_envelope,'r--','LineWidth',1.5);
+
+grid on;
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('Model Graph - Under-Modulation (m < 1)');
+
+legend('Carrier Wave','Message Wave Envelope', ...
+       'Location','southoutside');
+
+xlim([0 0.6]);
+ylim([-1.7 1.7]);
+
+% Modulation index calculation
+Vmax = Ac*(1+m);
+Vmin = Ac*(1-m);
+MI = (Vmax-Vmin)/(Vmax+Vmin);
+
+fprintf('OBJECTIVE 2: UNDER-MODULATION\n');
+fprintf('Maximum envelope = %.2f V\n',Vmax);
+fprintf('Minimum envelope = %.2f V\n',Vmin);
+fprintf('Modulation index = %.2f\n',MI);
+fprintf('Percentage modulation = %.0f%%\n',MI*100);
+
+disp('Result: Under-modulation model graph generated.');
