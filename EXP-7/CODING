@@ -1,0 +1,133 @@
+
+clc;
+clear;
+close all;
+
+% FM GENERATION, DETECTION AND ANALYSIS
+% Frequency Deviation, Modulation Index and Bandwidth
+
+%% 1. INPUT PARAMETERS
+
+Am = 2;             % Message amplitude (V)
+Ac = 1;             % Carrier amplitude
+fm = 500;           % Message frequency (Hz)
+fc = 10000;         % Carrier frequency (Hz)
+kf = 1000;          % Frequency sensitivity (Hz/V)
+fs = 100000;        % Sampling frequency (Hz)
+T = 0.02;           % Simulation duration (s)
+
+t = 0:1/fs:T;
+
+%% 2. MESSAGE AND CARRIER SIGNALS
+
+m = Am*cos(2*pi*fm*t);
+c = Ac*cos(2*pi*fc*t);
+
+%% 3. FREQUENCY DEVIATION AND MODULATION INDEX
+
+delta_f = kf*Am;
+beta = delta_f/fm;
+
+%% 4. FM SIGNAL GENERATION
+
+% FM phase obtained by integrating the message signal
+fm_signal = Ac*cos(2*pi*fc*t ...
+             + beta*sin(2*pi*fm*t));
+
+%% 5. FM DEMODULATION
+
+% Instantaneous phase method
+analytic_signal = hilbert(fm_signal);
+phase_signal = unwrap(angle(analytic_signal));
+
+inst_freq = [diff(phase_signal)*fs/(2*pi), 0];
+
+% Recover message signal
+demod = (inst_freq - fc)/kf;
+
+% Remove DC offset
+demod = demod - mean(demod);
+
+%% 6. PLOT MESSAGE, CARRIER, FM AND DEMODULATED SIGNALS
+
+figure('Name','FM Generation and Detection', ...
+       'NumberTitle','off','Color','w');
+
+subplot(4,1,1);
+plot(t,m,'b','LineWidth',1.2);
+title('Message Signal');
+xlabel('Time (s)');
+ylabel('Amplitude (V)');
+grid on;
+
+subplot(4,1,2);
+plot(t,c,'r','LineWidth',1);
+title('Carrier Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(4,1,3);
+plot(t,fm_signal,'b','LineWidth',1);
+title('Frequency Modulated Signal');
+xlabel('Time (s)');
+ylabel('Amplitude');
+grid on;
+
+subplot(4,1,4);
+plot(t,m,'b--','LineWidth',1.2);
+hold on;
+plot(t,demod,'r','LineWidth',1.1);
+title('FM Demodulated Output');
+xlabel('Time (s)');
+ylabel('Amplitude (V)');
+legend('Original Message','Recovered Message');
+grid on;
+
+%% 7. FREQUENCY SPECTRUM ANALYSIS
+
+N = length(fm_signal);
+FM_fft = abs(fftshift(fft(fm_signal)))/N;
+
+f = (-floor(N/2):ceil(N/2)-1)*(fs/N);
+
+figure('Name','FM Frequency Spectrum', ...
+       'NumberTitle','off','Color','w');
+
+plot(f,FM_fft,'LineWidth',1.3);
+title('FM Signal Spectrum');
+xlabel('Frequency (Hz)');
+ylabel('Magnitude');
+grid on;
+xlim([fc-10000 fc+10000]);
+
+%% 8. CARSON'S RULE BANDWIDTH
+
+BW = 2*(delta_f + fm);
+
+%% 9. DISPLAY RESULTS
+
+fprintf('\nFM GENERATION AND DETECTION\n');
+fprintf('------------------------------\n');
+
+fprintf('Message Amplitude = %.2f V\n',Am);
+fprintf('Message Frequency = %.0f Hz\n',fm);
+fprintf('Carrier Amplitude = %.2f V\n',Ac);
+fprintf('Carrier Frequency = %.0f Hz\n',fc);
+fprintf('Frequency Sensitivity = %.0f Hz/V\n',kf);
+
+fprintf('\nCALCULATED PARAMETERS\n');
+fprintf('------------------------------\n');
+
+fprintf('Frequency Deviation = %.0f Hz\n',delta_f);
+fprintf('Modulation Index = %.2f\n',beta);
+fprintf('Carson Rule Bandwidth = %.0f Hz\n',BW);
+
+%% 10. RESULT
+
+disp(' ');
+disp('RESULT:');
+disp('FM signal generated successfully.');
+disp('Frequency deviation and modulation index calculated.');
+disp('FM spectrum analyzed.');
+disp('FM demodulation performed.');
